@@ -1,0 +1,14 @@
+version: '3'
+services:
+  recognition_service:
+    env_file:
+      - speech_service_config.env
+    ports:
+      - "80:80"
+    build: ./SpeechRecognitionService
+  recognition_bot:
+    env_file:
+      - bot_config.env
+    build: ./recognition_bot
+    volumes: 
+      - ~/.recognition_db/:/db

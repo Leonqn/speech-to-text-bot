@@ -1,7 +1,0 @@
-[package]
-name = "RecognitionBot"
-version = "0.1.0"
-authors = ["Ilya Titkov <ilya@titkov.me>"]
-edition = "2018"
-
-[dependencies]

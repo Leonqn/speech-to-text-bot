@@ -8,7 +8,6 @@ namespace SpeechRecognitionService
 {
     public class SpeechRecognitionSamples
     {
-
         public static void Main(string[] args)
         {
             var port =
@@ -21,8 +20,8 @@ namespace SpeechRecognitionService
             })
             .ConfigureAppConfiguration((_, config) =>
             {
-                config.AddIniFile("config.ini");
-                config.AddEnvironmentVariables("speech_");
+                config.AddIniFile("config.ini", true);
+                config.AddEnvironmentVariables();
             })
             .ConfigureLogging((_, config) =>
             {
