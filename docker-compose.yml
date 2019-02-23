@@ -3,6 +3,7 @@ services:
   recognition_service:
     env_file:
       - speech_service_config.env
+    restart: always
     ports:
       - "80"
     build: ./SpeechRecognitionService
@@ -10,5 +11,6 @@ services:
     env_file:
       - bot_config.env
     build: ./recognition_bot
+    restart: always
     volumes: 
       - ~/.recognition_db/:/db
