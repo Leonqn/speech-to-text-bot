@@ -34,7 +34,7 @@ msbuild.wrn
 .vs/
 
 #rust
-/target
+target
 **/*.rs.bk
 
 #idea
