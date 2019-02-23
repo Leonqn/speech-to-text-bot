@@ -4,7 +4,7 @@ services:
     env_file:
       - speech_service_config.env
     ports:
-      - "80:80"
+      - "80"
     build: ./SpeechRecognitionService
   recognition_bot:
     env_file:
