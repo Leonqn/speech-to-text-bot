@@ -40,7 +40,7 @@ namespace SpeechRecognitionService
                     {
                         if (e.Result.Reason == ResultReason.RecognizedSpeech)
                         {
-                            recognitionResult.Append(e.Result.Text + " ");
+                            recognitionResult.Append(e.Result.Text + ". ");
                         }
                         if (e.Result.Reason == ResultReason.NoMatch)
                         {
