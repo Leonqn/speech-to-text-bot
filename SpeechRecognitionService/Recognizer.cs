@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CognitiveServices.Speech;
@@ -33,16 +34,17 @@ namespace SpeechRecognitionService
                 await maxConcurrentRequests.WaitAsync();
                 using (var recognizer = new SpeechRecognizer(config, AudioConfig.FromStreamInput(recognitionStream)))
                 {
-                    var tcs = new TaskCompletionSource<string>();
+                    var tcs = new TaskCompletionSource<bool>();
+                    var recognitionResult = new StringBuilder();
                     recognizer.Recognized += (_, e) =>
                     {
                         if (e.Result.Reason == ResultReason.RecognizedSpeech)
                         {
-                            tcs.TrySetResult(e.Result.Text);
+                            recognitionResult.Append(e.Result.Text + " ");
                         }
                         if (e.Result.Reason == ResultReason.NoMatch)
                         {
-                            tcs.TrySetResult(null);
+                            recognitionResult.Append("Speech could not be recognized");
                         }
                     };
                     recognizer.Canceled += (_, e) =>
@@ -54,7 +56,7 @@ namespace SpeechRecognitionService
                     };
                     recognizer.SessionStopped += (_, e) =>
                     {
-                        tcs.TrySetException(new Exception("Unknown error has occurred"));
+                        tcs.TrySetResult(true);
                     };
 
                     await recognizer.StartContinuousRecognitionAsync();
@@ -64,8 +66,8 @@ namespace SpeechRecognitionService
                     await recognizer.StopContinuousRecognitionAsync();
 
                     var response =
-                        response_or_timeout is Task<string> s
-                            ? await s
+                        response_or_timeout is Task<bool> s
+                            ? recognitionResult.ToString().TrimEnd()
                             : throw new Exception("timeout");
 
                     return response;
