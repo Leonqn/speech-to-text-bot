@@ -11,7 +11,6 @@ use rutebot::requests::get_file::GetFileRequest;
 use rutebot::requests::get_updates::{AllowedUpdate, GetUpdatesRequest};
 use rutebot::requests::send_chat_action::{ChatAction, SendChatAction};
 use rutebot::requests::send_message::{InlineKeyboard, InlineKeyboardButton, ReplyMarkup};
-use rutebot::requests::send_message;
 use rutebot::requests::send_message::send_text_message::SendTextMessageRequest;
 use rutebot::responses::{CallbackQuery, Message, Update};
 
