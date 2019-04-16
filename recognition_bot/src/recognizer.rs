@@ -93,7 +93,7 @@ impl Recognizer {
             })
     }
 
-    pub fn get_supported_languages(&self) -> &Vec<Language> {
+    pub fn get_supported_languages(&self) -> &[Language] {
         &self.supported_languages
     }
 }

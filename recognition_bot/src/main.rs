@@ -1,9 +1,9 @@
 use std::io;
-use log::info;
+
 use config::Config;
-use serde::Deserialize;
 use config::ConfigError;
-use relegram::HttpClient;
+use log::info;
+use serde::Deserialize;
 
 mod media_converter;
 mod bot;
@@ -38,7 +38,7 @@ fn main() -> Result<(), io::Error> {
     let recognizer = recognizer::Recognizer::new(settings.recognizer_uri);
     let media_converter = media_converter::MediaConverter::new();
     let storage = storage::Storage::new(settings.db_file_path).unwrap();
-    let bot_api_client = relegram::BotApiClient::new(HttpClient::Default, settings.bot_apikey);
+    let bot_api_client = rutebot::client::Rutebot::new(settings.bot_apikey);
 
     let bot = bot::Bot::new(bot_api_client, media_converter, recognizer, storage);
 
