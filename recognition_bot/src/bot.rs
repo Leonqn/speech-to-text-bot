@@ -7,11 +7,9 @@ use log::error;
 use rutebot::client::Rutebot;
 use rutebot::requests::answer_callback_query::AnswerCallbackQuery;
 use rutebot::requests::ChatId;
-use rutebot::requests::get_file::GetFileRequest;
-use rutebot::requests::get_updates::{AllowedUpdate, GetUpdatesRequest};
+use rutebot::requests::get_updates::{AllowedUpdate, GetUpdates};
 use rutebot::requests::send_chat_action::{ChatAction, SendChatAction};
 use rutebot::requests::send_message::{InlineKeyboard, InlineKeyboardButton, ReplyMarkup};
-use rutebot::requests::send_message::send_text_message::SendTextMessageRequest;
 use rutebot::responses::{CallbackQuery, Message, Update};
 
 use crate::media_converter::*;
@@ -20,6 +18,8 @@ use crate::recognizer::*;
 use crate::recognizer;
 use crate::storage;
 use crate::storage::Storage;
+use rutebot::requests::send_message::send_text::SendText;
+use rutebot::requests::get_file::GetFile;
 
 #[derive(Debug)]
 pub enum Error {
@@ -103,14 +103,14 @@ impl Bot {
 
     pub fn start_bot(&self) -> impl Future<Item=(), Error=()> {
         let allowed_updates = [AllowedUpdate::Message, AllowedUpdate::CallbackQuery];
-        let get_updates_request = GetUpdatesRequest {
+        let get_updates_request = GetUpdates {
             offset: None,
             limit: None,
             timeout: Some(100),
             allowed_updates: Some(&allowed_updates),
         };
         let self_1 = self.clone();
-        self.inner.bot_api_client.incoming_updates(&get_updates_request)
+        self.inner.bot_api_client.incoming_updates(get_updates_request)
             .then(|res| {
                 let ok: Result<_, ()> = Ok(res);
                 ok
@@ -191,19 +191,19 @@ impl Bot {
             ReplyMarkup::InlineKeyboard(InlineKeyboard {
                 inline_keyboard: keyboard.as_slice()
             });
-        let request = SendTextMessageRequest {
+        let request = SendText {
             reply_markup: Some(keyboard),
-            ..SendTextMessageRequest::new(ChatId::Id(chat_id), "Choose language for recognition")
+            ..SendText::new(chat_id, "Choose language for recognition")
         };
 
-        self.inner.bot_api_client.prepare_api_request(&request).send()
+        self.inner.bot_api_client.prepare_api_request(request).send()
             .map(|_| ())
             .map_err(From::from)
     }
 
     fn handle_lang_has_set(&self, chat_id: i64, callback_id: String, callback_data: String) -> impl Future<Item=(), Error=Error> {
         self.inner.db.put(chat_id, callback_data);
-        self.inner.bot_api_client.prepare_api_request(&AnswerCallbackQuery {
+        self.inner.bot_api_client.prepare_api_request(AnswerCallbackQuery {
             callback_query_id: &callback_id,
             text: Some("Language has been changed"),
             show_alert: false,
@@ -221,7 +221,7 @@ impl Bot {
              Please choose language by command /set_lang. \
              Default language is russian";
 
-        self.inner.bot_api_client.prepare_api_request(&SendTextMessageRequest::new(ChatId::Id(chat_id), help_msg)).send()
+        self.inner.bot_api_client.prepare_api_request(SendText::new(ChatId::Id(chat_id), help_msg)).send()
             .map_err(From::from)
             .map(|_| ())
     }
@@ -233,11 +233,11 @@ impl Bot {
         let self_4 = self.clone();
 
         hyper::rt::spawn(self.inner.bot_api_client
-            .prepare_api_request(&SendChatAction { chat_id: ChatId::Id(chat_id), action: ChatAction::Typing }).send()
+            .prepare_api_request(SendChatAction { chat_id: ChatId::Id(chat_id), action: ChatAction::Typing }).send()
             .map_err(|err| error!("Error in sending chat action: {}", err))
             .map(|_| ()));
 
-        self.inner.bot_api_client.prepare_api_request(&GetFileRequest::new(&file_id)).send()
+        self.inner.bot_api_client.prepare_api_request(GetFile::new(&file_id)).send()
             .and_then(move |file| self_4.inner.bot_api_client.download_file(&file.file_path.as_ref().map_or("", String::as_str)))
             .map(move |file|
                 match video_or_voice {
@@ -255,9 +255,9 @@ impl Bot {
                         "Something went wrong. Please try again later."
                     }
                 };
-                let request = SendTextMessageRequest::new_reply(ChatId::Id(chat_id), reply_msg, msg_id);
+                let request = SendText::new_reply(ChatId::Id(chat_id), reply_msg, msg_id);
                 self_3.inner.bot_api_client
-                    .prepare_api_request(&request).send()
+                    .prepare_api_request(request).send()
                     .map_err(From::from)
                     .map(|_| ())
             })
