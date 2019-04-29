@@ -5,11 +5,13 @@ use std::time::Duration;
 use futures::{Future, Stream};
 use log::error;
 use rutebot::client::Rutebot;
-use rutebot::requests::answer_callback_query::AnswerCallbackQuery;
-use rutebot::requests::ChatId;
-use rutebot::requests::get_updates::{AllowedUpdate, GetUpdates};
-use rutebot::requests::send_chat_action::{ChatAction, SendChatAction};
+use rutebot::requests::{AllowedUpdate, GetUpdates};
+use rutebot::requests::{ChatAction, SendChatAction};
 use rutebot::requests::{InlineKeyboard, InlineKeyboardButton, ReplyMarkup};
+use rutebot::requests::AnswerCallbackQuery;
+use rutebot::requests::ChatId;
+use rutebot::requests::GetFile;
+use rutebot::requests::SendMessage;
 use rutebot::responses::{CallbackQuery, Message, Update};
 
 use crate::media_converter::*;
@@ -18,8 +20,6 @@ use crate::recognizer::*;
 use crate::recognizer;
 use crate::storage;
 use crate::storage::Storage;
-use rutebot::requests::send_text::SendText;
-use rutebot::requests::get_file::GetFile;
 
 #[derive(Debug)]
 pub enum Error {
@@ -191,9 +191,9 @@ impl Bot {
             ReplyMarkup::InlineKeyboard(InlineKeyboard {
                 inline_keyboard: keyboard.as_slice()
             });
-        let request = SendText {
+        let request = SendMessage {
             reply_markup: Some(keyboard),
-            ..SendText::new(chat_id, "Choose language for recognition")
+            ..SendMessage::new(chat_id, "Choose language for recognition")
         };
 
         self.inner.bot_api_client.prepare_api_request(request).send()
@@ -221,7 +221,7 @@ impl Bot {
              Please choose language by command /set_lang. \
              Default language is russian";
 
-        self.inner.bot_api_client.prepare_api_request(SendText::new(chat_id, help_msg)).send()
+        self.inner.bot_api_client.prepare_api_request(SendMessage::new(chat_id, help_msg)).send()
             .map_err(From::from)
             .map(|_| ())
     }
@@ -255,7 +255,7 @@ impl Bot {
                         "Something went wrong. Please try again later."
                     }
                 };
-                let request = SendText::new_reply(chat_id, reply_msg, msg_id);
+                let request = SendMessage::new_reply(chat_id, reply_msg, msg_id);
                 self_3.inner.bot_api_client
                     .prepare_api_request(request).send()
                     .map_err(From::from)
