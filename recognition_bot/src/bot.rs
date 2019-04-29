@@ -12,6 +12,7 @@ use rutebot::requests::SendMessage;
 use rutebot::requests::{AllowedUpdate, GetUpdates};
 use rutebot::requests::{ChatAction, SendChatAction};
 use rutebot::requests::{InlineKeyboard, InlineKeyboardButton, ReplyMarkup};
+use rutebot::responses::MessageEntityValue;
 use rutebot::responses::{CallbackQuery, Message, Update};
 
 use crate::media_converter;
@@ -139,25 +140,34 @@ impl Bot {
                     Some(Message {
                         chat,
                         text: Some(text),
+                        entities: Some(entities),
                         ..
                     }),
                 ..
-            } => match text.as_str() {
-                "/set_lang" => {
-                    hyper::rt::spawn(
-                        self.handle_set_lang(chat.id)
-                            .map_err(|err| error!("Error in setting lang: {:?}", err)),
-                    );
-                }
+            } => {
+                if let Some(bot_command) = entities
+                    .first()
+                    .and_then(|x| x.extract_value(&text))
+                    .and_then(|x| match x {
+                        MessageEntityValue::BotCommand(x) => Some(x),
+                        _ => None,
+                    })
+                {
+                    if bot_command.starts_with("/set_lang") {
+                        hyper::rt::spawn(
+                            self.handle_set_lang(chat.id)
+                                .map_err(|err| error!("Error in setting lang: {:?}", err)),
+                        );
+                    }
 
-                "/help" => {
-                    hyper::rt::spawn(
-                        self.handle_help(chat.id)
-                            .map_err(|err| error!("Error in getting help: {:?}", err)),
-                    );
+                    if bot_command.starts_with("/help") {
+                        hyper::rt::spawn(
+                            self.handle_help(chat.id)
+                                .map_err(|err| error!("Error in getting help: {:?}", err)),
+                        );
+                    }
                 }
-                _ => (),
-            },
+            }
 
             Update {
                 message:
