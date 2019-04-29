@@ -5,8 +5,8 @@ use config::ConfigError;
 use log::info;
 use serde::Deserialize;
 
-mod media_converter;
 mod bot;
+mod media_converter;
 mod recognizer;
 mod storage;
 
@@ -27,7 +27,6 @@ impl Settings {
         settings.try_into()
     }
 }
-
 
 fn main() -> Result<(), io::Error> {
     env_logger::init();
