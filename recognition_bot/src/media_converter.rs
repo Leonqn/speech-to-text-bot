@@ -14,7 +14,7 @@ pub fn convert(media_kind: MediaKind) -> anyhow::Result<Vec<u8>> {
 }
 
 fn convert_int(file: NamedTempFile) -> anyhow::Result<Vec<u8>> {
-    let avconv_result = Command::new("avconv")
+    let avconv_result = Command::new("ffmpeg")
         .args(&[
             "-i",
             &file.path().to_str().expect("path should be UTF-8"),

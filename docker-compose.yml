@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   recognition_service:
     env_file:
@@ -7,10 +7,21 @@ services:
     ports:
       - "80"
     build: ./SpeechRecognitionService
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
   recognition_bot:
     env_file:
       - bot_config.env
     build: ./recognition_bot
     restart: always
-    volumes: 
+    volumes:
       - ~/.recognition_db/:/db
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
