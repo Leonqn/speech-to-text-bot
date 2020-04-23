@@ -1,20 +1,16 @@
-use std::fmt;
-use std::io;
+use anyhow::anyhow;
 use std::io::Write;
 use std::process::Command;
 use std::str;
 use tempfile::NamedTempFile;
-use anyhow::anyhow;
 
 pub enum MediaKind {
     Ogg(Vec<u8>),
     Mp4(Vec<u8>),
 }
 
-
 pub fn convert(media_kind: MediaKind) -> anyhow::Result<Vec<u8>> {
-    write_media_file(media_kind)
-        .and_then(convert_int)
+    write_media_file(media_kind).and_then(convert_int)
 }
 
 fn convert_int(file: NamedTempFile) -> anyhow::Result<Vec<u8>> {

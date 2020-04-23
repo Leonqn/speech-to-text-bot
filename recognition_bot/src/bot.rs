@@ -1,21 +1,17 @@
-use std::fmt;
-use std::time::Duration;
-
-use futures::{Future, Stream, StreamExt};
+use futures::StreamExt;
 use log::error;
 use rutebot::client::Rutebot;
-use rutebot::requests::{AnswerCallbackQuery, UpdateKind};
 use rutebot::requests::ChatId;
 use rutebot::requests::GetFile;
 use rutebot::requests::SendMessage;
+use rutebot::requests::UpdateKind;
 use rutebot::requests::{ChatAction, SendChatAction};
-use rutebot::requests::{InlineKeyboard, InlineKeyboardButton, ReplyMarkup};
-use rutebot::responses::MessageEntityValue;
-use rutebot::responses::{CallbackQuery, Message, Update};
 
-use crate::media_converter;
+use rutebot::responses::MessageEntityValue;
+use rutebot::responses::{Message, Update};
+
 use crate::media_converter::*;
-use crate::recognizer;
+
 use crate::recognizer::*;
 use anyhow::Context;
 
@@ -31,10 +27,7 @@ enum VideoOrVoice {
 }
 
 impl Bot {
-    pub fn new(
-        bot_api_client: Rutebot,
-        recognizer: Recognizer,
-    ) -> Self {
+    pub fn new(bot_api_client: Rutebot, recognizer: Recognizer) -> Self {
         Self {
             bot_api_client,
             recognizer,
@@ -43,7 +36,10 @@ impl Bot {
 
     pub async fn start_bot(&self) -> anyhow::Result<()> {
         let allowed_updates = Some(vec![UpdateKind::Message]);
-        let mut updates_stream = self.bot_api_client.incoming_updates(None, allowed_updates).boxed();
+        let mut updates_stream = self
+            .bot_api_client
+            .incoming_updates(None, allowed_updates)
+            .boxed();
 
         while let Some(update) = updates_stream.next().await {
             match update {
@@ -67,12 +63,12 @@ impl Bot {
         match update {
             Update {
                 message:
-                Some(Message {
-                         chat,
-                         text: Some(text),
-                         entities: Some(entities),
-                         ..
-                     }),
+                    Some(Message {
+                        chat,
+                        text: Some(text),
+                        entities: Some(entities),
+                        ..
+                    }),
                 ..
             } => {
                 if let Some(bot_command) = entities
@@ -91,40 +87,39 @@ impl Bot {
 
             Update {
                 message:
-                Some(Message {
-                         message_id,
-                         chat,
-                         voice: Some(voice),
-                         ..
-                     }),
+                    Some(Message {
+                        message_id,
+                        chat,
+                        voice: Some(voice),
+                        ..
+                    }),
                 ..
             } => {
-                    self.handle_media_message(
-                        chat.id,
-                        message_id,
-                        VideoOrVoice::Voice,
-                        voice.file_id,
-                    ).await.context("voice")?;
+                self.handle_media_message(chat.id, message_id, VideoOrVoice::Voice, voice.file_id)
+                    .await
+                    .context("voice")?;
             }
 
             Update {
                 message:
-                Some(Message {
-                         message_id,
-                         chat,
-                         video_note: Some(video_note),
-                         ..
-                     }),
+                    Some(Message {
+                        message_id,
+                        chat,
+                        video_note: Some(video_note),
+                        ..
+                    }),
                 ..
             } => {
-                    self.handle_media_message(
-                        chat.id,
-                        message_id,
-                        VideoOrVoice::Video,
-                        video_note.file_id,
-                    ).await.context("video_note")?;
+                self.handle_media_message(
+                    chat.id,
+                    message_id,
+                    VideoOrVoice::Video,
+                    video_note.file_id,
+                )
+                .await
+                .context("video_note")?;
             }
-            _ => {},
+            _ => {}
         }
         Ok(())
     }
@@ -134,7 +129,10 @@ impl Bot {
                         You can forward messages to me or add me to chat. \
                         Default and the only language is russian";
 
-        self.bot_api_client.prepare_api_request(SendMessage::new(chat_id, help_msg)).send().await?;
+        self.bot_api_client
+            .prepare_api_request(SendMessage::new(chat_id, help_msg))
+            .send()
+            .await?;
         Ok(())
     }
 
@@ -146,13 +144,13 @@ impl Bot {
         file_id: String,
     ) -> anyhow::Result<()> {
         let recognized = async {
-            self
-                .bot_api_client
+            self.bot_api_client
                 .prepare_api_request(SendChatAction {
                     chat_id: ChatId::Id(chat_id),
                     action: ChatAction::Typing,
                 })
-                .send().await?;
+                .send()
+                .await?;
 
             let file_handle = self
                 .bot_api_client
@@ -160,7 +158,8 @@ impl Bot {
                 .send()
                 .await?;
 
-            let file_bytes = self.bot_api_client
+            let file_bytes = self
+                .bot_api_client
                 .download_file(&file_handle.file_path.as_ref().map_or("", String::as_str))
                 .await?;
             let media_kind = match video_or_voice {
@@ -168,12 +167,9 @@ impl Bot {
                 VideoOrVoice::Voice => MediaKind::Ogg(file_bytes),
             };
             let converted = tokio::task::spawn_blocking(move || convert(media_kind)).await??;
-                self
-                    .recognizer
-                    .recognize_audio(
-                        converted,
-                    ).await
-        }.await;
+            self.recognizer.recognize_audio(converted).await
+        }
+        .await;
 
         let reply_msg = match recognized {
             Ok(ref recognized) => recognized,
@@ -183,10 +179,10 @@ impl Bot {
             }
         };
         let request = SendMessage::new_reply(chat_id, reply_msg, msg_id);
-            self
-            .bot_api_client
+        self.bot_api_client
             .prepare_api_request(request)
-            .send().await?;
+            .send()
+            .await?;
         Ok(())
     }
 }

@@ -1,15 +1,12 @@
-use futures::stream::Stream;
-use futures::Future;
 use hyper;
 use hyper::client::HttpConnector;
 use hyper::Body;
 use hyper::Client;
 use hyper::Request;
-use hyper::StatusCode;
-use std::fmt;
-use std::str;
-use hyper::body;
+
 use anyhow::anyhow;
+use hyper::body;
+use std::str;
 
 #[derive(Clone)]
 pub struct Recognizer {
@@ -25,10 +22,7 @@ impl Recognizer {
         }
     }
 
-    pub async fn recognize_audio(
-        &self,
-        bytes: Vec<u8>,
-    ) -> anyhow::Result<String> {
+    pub async fn recognize_audio(&self, bytes: Vec<u8>) -> anyhow::Result<String> {
         let request = Request::post(format!("{}?lang=ru-RU", &self.uri))
             .body(Body::from(bytes))
             .expect("While creating request an error has occurred");
@@ -39,7 +33,11 @@ impl Recognizer {
         if status.is_success() {
             Ok(body)
         } else {
-            Err(anyhow!("Api responded with status {} and body {}", status, body))
+            Err(anyhow!(
+                "Api responded with status {} and body {}",
+                status,
+                body
+            ))
         }
     }
 }

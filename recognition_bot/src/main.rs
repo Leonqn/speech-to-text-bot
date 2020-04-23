@@ -1,5 +1,3 @@
-use std::io;
-
 use config::Config;
 use config::ConfigError;
 use log::info;
