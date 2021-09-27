@@ -17,7 +17,7 @@ fn convert_int(file: NamedTempFile) -> anyhow::Result<Vec<u8>> {
     let avconv_result = Command::new("ffmpeg")
         .args(&[
             "-i",
-            &file.path().to_str().expect("path should be UTF-8"),
+            file.path().to_str().expect("path should be UTF-8"),
             "-vn",
             "-acodec",
             "pcm_s16le",

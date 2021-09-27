@@ -5,14 +5,14 @@ authors = ["Ilya Titkov <ilya@titkov.me>"]
 edition = "2018"
 
 [dependencies]
-hyper = "0.13"
-config = "0.9"
+hyper = "0.14"
+config = "0.11"
 log = "0.4"
-env_logger  = "0.7"
-rutebot = "0.6"
+env_logger  = "0.9"
+rutebot = "0.7"
 futures = "0.3"
 tempfile = "3"
 winapi = "^0.3.8"
 anyhow = "1"
-tokio = {version = "0.2", features = ["full"]}
+tokio = {version = "1", features = ["full"]}
 serde = { version = "1", features = ["derive"] }

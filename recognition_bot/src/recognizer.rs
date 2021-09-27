@@ -1,4 +1,3 @@
-use hyper;
 use hyper::client::HttpConnector;
 use hyper::Body;
 use hyper::Client;

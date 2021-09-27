@@ -160,7 +160,7 @@ impl Bot {
 
             let file_bytes = self
                 .bot_api_client
-                .download_file(&file_handle.file_path.as_ref().map_or("", String::as_str))
+                .download_file(file_handle.file_path.as_ref().map_or("", String::as_str))
                 .await?;
             let media_kind = match video_or_voice {
                 VideoOrVoice::Video => MediaKind::Mp4(file_bytes),
